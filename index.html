@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Os meus testes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+<style>
+:root{--bg:#fff;--fg:#1a1d24;--mut:#6b7280;--line:#e5e7eb;--soft:#f5f6f8;--acc:#2f5bea;--today:#e8eeff}
+@media(prefers-color-scheme:dark){:root{--bg:#14161b;--fg:#eceef2;--mut:#98a0ae;--line:#2a2e37;--soft:#1c1f26;--acc:#7b9bff;--today:#222b4a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+header{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;padding:.9rem 1.2rem;border-bottom:1px solid var(--line)}
+h1{font-size:1.15rem;margin:0}
+.bar{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.btn{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:.4rem .8rem;cursor:pointer}
+.btn:hover{border-color:var(--acc)}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{display:grid;grid-template-columns:1fr 280px;gap:1.2rem;padding:1.2rem;max-width:1200px;margin:auto}
+@media(max-width:860px){main{grid-template-columns:1fr;padding:.6rem}}
+.nav{display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem}
+.nav h2{margin:0 auto 0 .5rem;font-size:1.3rem;text-transform:capitalize}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.dow{padding:.4rem;text-align:center;color:var(--mut);font-size:.8rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.day{min-height:104px;padding:.3rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer;overflow:hidden}
+.day:hover{background:var(--soft)}
+.day.out{color:var(--mut);opacity:.55}
+.day.today{background:var(--today)}
+.day .n{font-size:.85rem;display:inline-block;min-width:1.6rem;text-align:center;border-radius:99px}
+.day.today .n{background:var(--acc);color:#fff}
+.ev{display:block;width:100%;text-align:left;border:0;border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 16%,transparent);border-radius:4px;padding:1px 5px;margin-top:3px;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.ev.done{text-decoration:line-through;opacity:.55}
+aside h3{margin:0 0 .6rem;font-size:1rem}
+.up{display:flex;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--line);cursor:pointer}
+.up .d{min-width:3.2rem;font-weight:600}
+.up small{color:var(--mut);display:block}
+.up .left{color:var(--mut);margin-left:auto;font-size:.8rem;white-space:nowrap}
+.empty{color:var(--mut)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);padding:1.2rem;width:min(420px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+label{display:block;margin:.6rem 0 .2rem;font-size:.85rem;color:var(--mut)}
+input,textarea,select{width:100%;padding:.45rem .6rem;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
+.row{display:flex;gap:.6rem}.row>div{flex:1}
+.chk{display:flex;gap:.5rem;align-items:center;margin-top:.8rem;color:var(--fg);font-size:.95rem}
+.chk input{width:auto}
+.acts{display:flex;gap:.5rem;margin-top:1.1rem}
+.acts .sp{margin-left:auto}
+.del{color:#d33}
+</style>
+</head>
+<body>
+<header>
+  <h1>Os meus testes</h1>
+  <div class="bar">
+    <button class="btn" id="exp">Exportar .ics</button>
+    <button class="btn" id="bak">Backup</button>
+    <button class="btn" id="imp">Importar</button>
+    <input type="file" id="file" accept=".json" hidden>
+    <button class="btn p" id="add">Novo teste</button>
+    <button class="btn" id="link">Ligar dispositivo</button>
+  </div>
+</header>
+<main>
+  <section>
+    <div class="nav">
+      <button class="btn" id="prev" aria-label="Mês anterior">&lsaquo;</button>
+      <button class="btn" id="next" aria-label="Mês seguinte">&rsaquo;</button>
+      <h2 id="title"></h2>
+      <button class="btn" id="today">Hoje</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+  <aside>
+    <h3>Próximos testes</h3>
+    <div id="upcoming"></div>
+  </aside>
+</main>
+
+<dialog id="linkdlg">
+  <div style="font-weight:600">Ver noutro dispositivo</div>
+  <p>Abre este link no outro dispositivo (envia-o a ti próprio por mensagem ou email). Quem tiver o link vê e edita os teus testes, por isso não o partilhes.</p>
+  <input id="l-url" readonly>
+  <div class="acts">
+    <button class="btn p" id="l-copy">Copiar link</button>
+    <button class="btn" id="l-close">Fechar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg">
+  <div id="dt" style="font-weight:600"></div>
+  <label for="f-title">Teste</label>
+  <input id="f-title" placeholder="Ex.: Teste 1">
+  <label for="f-subj">Cadeira</label>
+  <input id="f-subj" list="subjs" placeholder="Ex.: Cálculo">
+  <datalist id="subjs"></datalist>
+  <div class="row">
+    <div><label for="f-date">Data</label><input id="f-date" type="date"></div>
+    <div><label for="f-time">Hora</label><input id="f-time" type="time"></div>
+  </div>
+  <label for="f-notes">Notas</label>
+  <textarea id="f-notes" rows="3" placeholder="Matéria, sala, material permitido..."></textarea>
+  <label class="chk"><input type="checkbox" id="f-done"> Já feito</label>
+  <div class="acts">
+    <button class="btn p" id="save">Guardar</button>
+    <button class="btn" id="cancel">Cancelar</button>
+    <button class="btn del sp" id="del" hidden>Apagar</button>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* === CONFIGURAÇÃO: cola aqui os dados do teu projeto Supabase === */
+const SUPABASE_URL="https://ernvtcejozpjniqpwkhi.supabase.co";
+const SUPABASE_KEY="sb_publishable_Eu_d_hbFP7Sjxh6XvOsz-g_svrgn1QW";
+/* ============================================================== */
+const KEY="testes-calendario-v1";
+const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const DIAS=["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+const $=id=>document.getElementById(id);
+const configured=!SUPABASE_URL.startsWith("COLA");
+const db=configured?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+let events=[];
+/* A "chave" vive no link (#k=...) e identifica o teu calendário. Sem login. */
+const KEYSTORE="testes-chave";
+function getKey(){
+  const m=location.hash.match(/k=([a-z0-9]{16,})/);
+  let k=m?m[1]:null;
+  try{if(!k)k=localStorage.getItem(KEYSTORE)}catch(e){}
+  if(!k){const a=new Uint8Array(24);crypto.getRandomValues(a);k=[...a].map(b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("")}
+  try{localStorage.setItem(KEYSTORE,k)}catch(e){}
+  history.replaceState(null,"","#k="+k);
+  return k;
+}
+const CK=getKey();
+const fail=e=>alert("Erro: "+(e.message||e));
+const toRow=e=>({title:e.title,subject:e.subject||"",date:e.date,time:e.time||"",notes:e.notes||"",done:!!e.done});
+async function load(){
+  const{data,error}=await db.rpc("list_tests",{k:CK});
+  if(error)return fail(error);
+  events=data;render();
+}
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const color=s=>{let h=0;for(const c of (s||"x"))h=(h*31+c.charCodeAt(0))%360;return`hsl(${h} 65% 48%)`};
+let cur=new Date();cur.setDate(1);
+let editing=null;
+
+function render(){
+  $("title").textContent=MESES[cur.getMonth()]+" "+cur.getFullYear();
+  const g=$("grid");g.innerHTML="";
+  DIAS.forEach(d=>{const e=document.createElement("div");e.className="dow";e.textContent=d;g.appendChild(e)});
+  const first=new Date(cur.getFullYear(),cur.getMonth(),1);
+  const start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
+  const todayS=iso(new Date());
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    if(i>=35&&d.getMonth()!==cur.getMonth())break;
+    const s=iso(d);
+    const cell=document.createElement("div");
+    cell.className="day"+(d.getMonth()!==cur.getMonth()?" out":"")+(s===todayS?" today":"");
+    const n=document.createElement("span");n.className="n";n.textContent=d.getDate();cell.appendChild(n);
+    events.filter(e=>e.date===s).sort((a,b)=>(a.time||"").localeCompare(b.time||"")).forEach(e=>{
+      const b=document.createElement("button");
+      b.className="ev"+(e.done?" done":"");b.style.setProperty("--c",color(e.subject));
+      b.textContent=(e.time?e.time+" ":"")+(e.subject?e.subject+": ":"")+e.title;
+      b.title=e.notes||"";
+      b.onclick=ev=>{ev.stopPropagation();openDlg(e)};
+      cell.appendChild(b);
+    });
+    cell.onclick=()=>openDlg(null,s);
+    g.appendChild(cell);
+  }
+  renderUpcoming();
+  $("subjs").innerHTML="";
+  [...new Set(events.map(e=>e.subject).filter(Boolean))].forEach(s=>{const o=document.createElement("option");o.value=s;$("subjs").appendChild(o)});
+}
+
+function renderUpcoming(){
+  const box=$("upcoming");box.innerHTML="";
+  const t=iso(new Date());
+  const list=events.filter(e=>e.date>=t&&!e.done).sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||""))).slice(0,8);
+  if(!list.length){box.innerHTML='<p class="empty">Sem testes marcados. Clica num dia para adicionar.</p>';return}
+  list.forEach(e=>{
+    const d=parse(e.date);
+    const diff=Math.round((d-parse(t))/864e5);
+    const row=document.createElement("div");row.className="up";row.onclick=()=>openDlg(e);
+    const dd=document.createElement("div");dd.className="d";dd.textContent=d.getDate()+" "+MESES[d.getMonth()].slice(0,3);
+    const mid=document.createElement("div");
+    mid.textContent=e.title;
+    const sm=document.createElement("small");sm.textContent=(e.subject||"")+(e.time?" · "+e.time:"");
+    mid.appendChild(sm);
+    const l=document.createElement("div");l.className="left";
+    l.textContent=diff===0?"hoje":diff===1?"amanhã":"em "+diff+" dias";
+    row.append(dd,mid,l);box.appendChild(row);
+  });
+}
+
+function openDlg(ev,date){
+  editing=ev;
+  $("dt").textContent=ev?"Editar teste":"Novo teste";
+  $("f-title").value=ev?ev.title:"";
+  $("f-subj").value=ev?ev.subject||"":"";
+  $("f-date").value=ev?ev.date:(date||iso(new Date()));
+  $("f-time").value=ev?ev.time||"":"";
+  $("f-notes").value=ev?ev.notes||"":"";
+  $("f-done").checked=ev?!!ev.done:false;
+  $("del").hidden=!ev;
+  $("dlg").showModal();$("f-title").focus();
+}
+
+$("save").onclick=async()=>{
+  const title=$("f-title").value.trim(),date=$("f-date").value;
+  if(!title||!date){$("f-title").focus();return}
+  const data={title,subject:$("f-subj").value.trim(),date,time:$("f-time").value,notes:$("f-notes").value.trim(),done:$("f-done").checked};
+  const r=await db.rpc("save_test",{k:CK,t:{...data,id:editing?editing.id:null}});
+  if(r.error)return fail(r.error);
+  $("dlg").close();
+  const d=parse(date);cur=new Date(d.getFullYear(),d.getMonth(),1);await load();
+};
+$("cancel").onclick=()=>$("dlg").close();
+$("del").onclick=async()=>{
+  if(!confirm("Apagar este teste?"))return;
+  const r=await db.rpc("delete_test",{k:CK,i:editing.id});
+  if(r.error)return fail(r.error);
+  $("dlg").close();await load();
+};
+$("add").onclick=()=>openDlg(null);
+$("prev").onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};
+$("next").onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
+$("today").onclick=()=>{cur=new Date();cur.setDate(1);render()};
+
+function download(name,text,type){
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+$("bak").onclick=()=>download("testes-backup.json",JSON.stringify(events,null,2),"application/json");
+$("imp").onclick=()=>$("file").click();
+$("file").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const arr=JSON.parse(await f.text());
+    if(!Array.isArray(arr))throw 0;
+    if(confirm("Isto substitui os testes atuais. Continuar?")){
+      const rows=arr.filter(x=>x&&x.title&&x.date).map(toRow);
+      const r=await db.rpc("replace_tests",{k:CK,rows,wipe:true});
+      if(r.error)throw r.error;
+      await load();
+    }
+  }catch(err){fail(err.message?err:"Ficheiro inválido. Usa um backup exportado daqui.")}
+  e.target.value="";
+};
+$("exp").onclick=()=>{
+  const esc=s=>(s||"").replace(/[\\;,]/g,"\\$&").replace(/\n/g,"\\n");
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z";
+  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Os meus testes//PT"];
+  events.forEach(e=>{
+    const d=e.date.replace(/-/g,"");
+    lines.push("BEGIN:VEVENT","UID:"+e.id+"@testes","DTSTAMP:"+stamp);
+    if(e.time){const t=e.time.replace(":","")+"00";lines.push("DTSTART:"+d+"T"+t)}
+    else{const n=parse(e.date);n.setDate(n.getDate()+1);lines.push("DTSTART;VALUE=DATE:"+d,"DTEND;VALUE=DATE:"+iso(n).replace(/-/g,""))}
+    lines.push("SUMMARY:"+esc((e.subject?e.subject+" - ":"")+e.title),"DESCRIPTION:"+esc(e.notes),"END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  download("testes.ics",lines.join("\r\n"),"text/calendar");
+};
+
+async function start(){
+  await load();
+  try{
+    const old=JSON.parse(localStorage.getItem(KEY)||"[]");
+    if(old.length&&!events.length&&confirm("Encontrei "+old.length+" testes guardados neste browser. Copiar para o calendário na nuvem?")){
+      const r=await db.rpc("replace_tests",{k:CK,rows:old.map(toRow),wipe:false});
+      if(r.error)return fail(r.error);
+      localStorage.removeItem(KEY);await load();
+    }
+  }catch(e){}
+}
+$("link").onclick=()=>{$("l-url").value=location.href;$("linkdlg").showModal()};
+$("l-close").onclick=()=>$("linkdlg").close();
+$("l-copy").onclick=async()=>{
+  try{await navigator.clipboard.writeText($("l-url").value)}catch(e){$("l-url").select();document.execCommand("copy")}
+  $("l-copy").textContent="Copiado";setTimeout(()=>$("l-copy").textContent="Copiar link",1500);
+};
+const refresh=()=>{if(configured&&!document.hidden)load()};
+document.addEventListener("visibilitychange",refresh);
+window.addEventListener("focus",refresh);
+
+render();
+if(configured)start();
+else alert("Falta configurar o Supabase no topo do ficheiro index.html (SUPABASE_URL e SUPABASE_KEY).");
+</script>
+</body>
+</html>
