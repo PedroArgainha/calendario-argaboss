@@ -123,7 +123,7 @@ const configured=!SUPABASE_URL.startsWith("COLA");
 const db=configured?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 let events=[];
 /* A "chave" vive no link (#k=...) e identifica o teu calendário. Sem login. */
-const KEYSTORE="testes-chave";
+const KEYSTORE="testes-chave";  
 function getKey(){
   const m=location.hash.match(/k=([a-z0-9]{16,})/);
   let k=m?m[1]:null;
@@ -133,7 +133,7 @@ function getKey(){
   history.replaceState(null,"","#k="+k);
   return k;
 }
-const CK=getKey();
+const CK="sb_publishable_Eu_d_hbFP7Sjxh6XvOsz-g_svrgn1QW";
 const fail=e=>alert("Erro: "+(e.message||e));
 const toRow=e=>({title:e.title,subject:e.subject||"",date:e.date,time:e.time||"",notes:e.notes||"",done:!!e.done});
 async function load(){
